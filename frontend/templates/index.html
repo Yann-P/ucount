@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section id="my-groups" hidden>
+    <div class="section-row">
+        <h2>{{ t.my_groups }}</h2>
+        <button type="button" class="secondary small" onclick="loadMyGroups()" aria-label="{{ t.refresh }}">↺</button>
+    </div>
+    <ul id="my-groups-list" data-confirm-remove="{{ t.confirm_remove_group }}"></ul>
+    <hr>
+</section>
+
+<h2>{{ t.create_group }}</h2>
+<form action="/groups" method="post" autocomplete="off">
+    <input type="text" name="name" placeholder="{{ t.group_name }}" autocomplete="off" required autofocus>
+    <br>
+    <fieldset id="members-fieldset" data-remove-label="{{ t.delete }}" data-placeholder="{{ t.member_placeholder }}">
+        <legend>{{ t.members_hint }}</legend>
+        <div class="member-row">
+            <input type="text" name="members" placeholder="{{ t.member_placeholder }}" autocomplete="off" required autofocus>
+            <button type="button" class="member-remove" aria-label="{{ t.delete }}" disabled>×</button>
+        </div>
+        <div class="member-row">
+            <input type="text" name="members" placeholder="{{ t.member_placeholder }}" autocomplete="off" required>
+            <button type="button" class="member-remove" aria-label="{{ t.delete }}" disabled>×</button>
+        </div>
+        <button type="button" class="secondary" id="add-member-btn">{{ t.add_member }}</button>
+    </fieldset>
+    <br>
+    <select name="currency">
+        <option value="EUR" selected>EUR</option>
+        <option value="USD">USD</option>
+        <option value="GBP">GBP</option>
+        <option value="CHF">CHF</option>
+    </select>
+    <button type="submit">{{ t.create_group }}</button>
+</form>
+<script src="/static/index.js"></script>
+{% endblock %}

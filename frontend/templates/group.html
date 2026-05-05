@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="/static/qrcode.min.js"></script>
+
+<div class="title-row">
+    <a href="/" class="back-btn" aria-label="Back">←</a>
+    <h1>{{ group.name }}</h1>
+    <div class="title-actions">
+        <button class="secondary" type="button" onclick="location.reload()" aria-label="{{ t.refresh }}">↺</button>
+        <button class="secondary" type="button" id="copy-btn" onclick="copyLink()">{{ t.copy_link }}</button>
+        <button class="secondary" type="button" onclick="toggleQR()">QR</button>
+    </div>
+</div>
+<div id="qr" style="display:none"></div>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<div role="tablist">
+    <button role="tab" id="tab-spendings" aria-controls="panel-spendings">{{ t.spendings }} ({{ group.spendings | length }})</button>
+    <button role="tab" id="tab-add"       aria-controls="panel-add">{{ t.new_spending }}</button>
+    <button role="tab" id="tab-members"   aria-controls="panel-members">{{ t.members_hint }}</button>
+</div>
+
+<div role="tabpanel" id="panel-spendings" aria-labelledby="tab-spendings" tabindex="0">
+    {% if group.spendings %}
+    <ul>
+        {% for s in group.spendings | reverse %}
+        {% set beneficiaries = t.all if s.beneficiaries | sort == group.members | sort else s.beneficiaries | join(", ") %}
+        <li class="spending-item">
+            <span class="spending-desc">{{ s.description }}</span>
+            <span class="spending-amount">{{ "%.2f" % s.amount }} {{ group.currency }}</span>
+            <form class="spending-delete" action="/group/{{ group.slug }}/spendings/{{ s.id }}/delete" method="post">
+                <button type="submit" class="small danger" onclick="return confirm('{{ t.confirm_delete }}')" aria-label="{{ t.delete }}">🗑</button>
+            </form>
+            <span class="spending-meta">{% if s.date %}<time class="spending-date" datetime="{{ s.date }}">{{ s.date }}</time> · {% endif %}{{ s.paid_by }} {{ t.paid }} · {{ t['for'] }} {{ beneficiaries }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>{{ t.no_spendings }}</p>
+    {% endif %}
+</div>
+
+<div role="tabpanel" id="panel-add" aria-labelledby="tab-add" tabindex="0">
+    <form action="/group/{{ group.slug }}/spendings" method="post" autocomplete="off">
+        <label for="description">{{ t.description }}</label>
+        <div class="autocomplete">
+            <input id="description" type="text" name="description" autocorrect="off" autocapitalize="off" spellcheck="false" required autocomplete="off">
+            <ul class="suggestions" hidden></ul>
+        </div>
+        <label for="paid-by">{{ t.paid_by }}</label>
+        <select id="paid-by" name="paid_by" required>
+            {% for m in group.members %}
+            <option value="{{ m }}">{{ m }}</option>
+            {% endfor %}
+        </select>
+        <label for="amount">{{ t.amount }}</label>
+        <input type="number" name="amount" required placeholder="{{ group.currency }}">
+        <fieldset class="checkboxes">
+            <legend>{{ t.for }}</legend>
+            {% for m in group.members %}
+            <label><input type="checkbox" name="beneficiaries" value="{{ m }}" checked> {{ m }}</label>
+            {% endfor %}
+        </fieldset>
+        <input type="date" name="date" id="spending-date">
+        <button type="submit" class="outline">{{ t.add_spending }}</button>
+    </form>
+</div>
+
+<div role="tabpanel" id="panel-members" aria-labelledby="tab-members" tabindex="0">
+    <ul>
+        {% for m in stats.members %}
+        <li class="member-stat-item">
+            <span>{{ m.name }}</span>
+            <span>{{ "%.2f" % m.paid }} {{ group.currency }}</span>
+            <span class="{{ 'positive' if m.balance > 0 else 'negative' if m.balance < 0 else '' }}">{{ "%+.2f" % m.balance }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    <hr>
+    {% if settlements %}
+    <ul>
+        {% for s in settlements %}
+        <li><strong>{{ s.payer }}</strong> {{ t.owes }} <strong>{{ s.payee }}</strong> {{ "%.2f" % s.amount }} {{ group.currency }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>{{ t.all_settled }}</p>
+    {% endif %}
+    <hr>
+    <button type="button" class="secondary" id="history-btn">{{ t.history }}</button>
+</div>
+
+<footer>
+    <div id="history-panel" hidden>
+        {% if log %}
+        <ul class="log-list">
+            {% for e in log | reverse %}
+            <li class="log-item">
+                <span class="log-action">{{ e.action }}</span>
+                <span class="log-meta">{{ e.dt }} · {{ e.ip }} · {{ e.browser }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>{{ t.no_history }}</p>
+        {% endif %}
+    </div>
+</footer>
+
+<script id="group-js"
+    data-labels='{"copy_link": "{{ t.copy_link }}", "copied": "{{ t.copied }}", "spending_added": "{{ t.spending_added }}"}'
+    data-reasons='{{ t.reasons | tojson }}'
+    data-slug="{{ group.slug }}"
+    data-name="{{ group.name | e }}"
+    src="/static/group.js"></script>
+{% endblock %}

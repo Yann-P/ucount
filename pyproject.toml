@@ -1,0 +1,22 @@
+[project]
+name = "uspend"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "jinja2",
+    "python-multipart",
+    "redis",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx",
+    "pytest",
+    "pyright",
+    "ruff",
+]
+
+[tool.uv]
+package = false
