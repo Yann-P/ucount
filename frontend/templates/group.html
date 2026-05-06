@@ -54,7 +54,7 @@
             {% endfor %}
         </select>
         <label for="amount">{{ t.amount }}</label>
-        <input type="number" name="amount" required placeholder="{{ group.currency }}">
+        <input type="number" name="amount" required placeholder="{{ group.currency }}" min="0.01" step="0.01">
         <fieldset class="checkboxes">
             <legend>{{ t.for }}</legend>
             {% for m in group.members %}
@@ -87,7 +87,10 @@
     <p>{{ t.all_settled }}</p>
     {% endif %}
     <hr>
-    <svg id="graph-svg" class="graph-svg"></svg>
+    <p class="graph-label">{{ t.legend_flows }}</p>
+    <svg id="graph-flows" class="graph-svg"></svg>
+    <p class="graph-label">{{ t.legend_settlements }}</p>
+    <svg id="graph-settlements" class="graph-svg"></svg>
     <hr>
     <button type="button" class="secondary" id="history-btn">{{ t.history }}</button>
     <div id="history-panel" hidden>
@@ -108,7 +111,7 @@
 
 
 <script id="group-js"
-    data-labels='{"copy_link": "{{ t.copy_link }}", "copied": "{{ t.copied }}", "spending_added": "{{ t.spending_added }}", "legend_flows": "{{ t.legend_flows }}", "legend_settlements": "{{ t.legend_settlements }}"}'
+    data-labels='{"copy_link": "{{ t.copy_link }}", "copied": "{{ t.copied }}", "spending_added": "{{ t.spending_added }}"}'
     data-reasons='{{ t.reasons | tojson }}'
     data-graph='{{ graph | tojson }}'
     data-slug="{{ group.slug }}"

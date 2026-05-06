@@ -173,3 +173,13 @@ def test_spending_limit_returns_400():
         assert add_spending(slug).status_code == 400
     finally:
         sp.MAX_SPENDINGS = original
+
+
+def test_negative_amount_returns_400():
+    slug = make_group()
+    assert add_spending(slug, amount="-10").status_code == 400
+
+
+def test_zero_amount_returns_400():
+    slug = make_group()
+    assert add_spending(slug, amount="0").status_code == 400

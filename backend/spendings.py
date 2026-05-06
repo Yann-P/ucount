@@ -33,6 +33,8 @@ async def add_spending(
     invalid = [b for b in beneficiaries if b not in members_set]
     if invalid:
         return HTMLResponse("Invalid beneficiaries", status_code=400)
+    if amount <= 0:
+        return HTMLResponse("Amount must be positive", status_code=400)
     if len(group["spendings"]) >= MAX_SPENDINGS:
         return HTMLResponse("Spending limit reached", status_code=400)
     if not date:

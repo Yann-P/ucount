@@ -149,14 +149,19 @@ function toggleQR() {
 }
 
 function initGraph() {
-    const svg = document.getElementById('graph-svg');
-    if (!svg) return;
     const graphData = _el.dataset.graph;
     if (!graphData) return;
     let parsed;
     try { parsed = JSON.parse(graphData); } catch { return; }
     const { members, flows, settlements } = parsed;
     if (!members || members.length === 0) return;
+
+    renderGraph(document.getElementById('graph-flows'), members, flows, '#3b82f6', 'arr-blue', '4,3');
+    renderGraph(document.getElementById('graph-settlements'), members, settlements, '#16a34a', 'arr-green', 'none');
+}
+
+function renderGraph(svg, members, edges, color, markerId, dash) {
+    if (!svg) return;
 
     const W = 400, H = 300;
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
@@ -174,32 +179,22 @@ function initGraph() {
     }
 
     const defs = mkEl('defs', {});
-    function addMarker(id, color) {
-        const m = mkEl('marker', { id, markerWidth: 5, markerHeight: 4, refX: 5, refY: 2, orient: 'auto' });
-        m.appendChild(mkEl('path', { d: 'M0,0 L5,2 L0,4 Z', fill: color }));
-        defs.appendChild(m);
-    }
-    addMarker('arr-blue', '#3b82f6');
-    addMarker('arr-green', '#16a34a');
+    const m = mkEl('marker', { id: markerId, markerWidth: 5, markerHeight: 4, refX: 5, refY: 2, orient: 'auto' });
+    m.appendChild(mkEl('path', { d: 'M0,0 L5,2 L0,4 Z', fill: color }));
+    defs.appendChild(m);
     svg.appendChild(defs);
 
-    const gZoom = mkEl('g', {});
-    svg.appendChild(gZoom);
+    const g = mkEl('g', {});
+    svg.appendChild(g);
 
     const nodes = members.map((name, i) => {
         const angle = (i / N) * 2 * Math.PI - Math.PI / 2;
         const hw = name.length * fontSize * 0.35 + PAD_X;
         const hh = fontSize / 2 + PAD_Y;
-        return {
-            name,
-            x: W / 2 + polyR * Math.cos(angle),
-            y: H / 2 + polyR * Math.sin(angle),
-            hw, hh,
-        };
+        return { name, x: W / 2 + polyR * Math.cos(angle), y: H / 2 + polyR * Math.sin(angle), hw, hh };
     });
     const nodeIdx = Object.fromEntries(nodes.map((n, i) => [n.name, i]));
 
-    // Returns the point on the border of `node` in direction (ddx, ddy) (unit vector).
     function borderPt(node, ddx, ddy) {
         const tx = ddx !== 0 ? node.hw / Math.abs(ddx) : Infinity;
         const ty = ddy !== 0 ? node.hh / Math.abs(ddy) : Infinity;
@@ -207,8 +202,6 @@ function initGraph() {
         return { x: node.x + ddx * t, y: node.y + ddy * t };
     }
 
-    // Canonical perpendicular normal for a pair — same direction regardless of which end is "from".
-    // This ensures flow and settlement arrows are always offset to opposite sides.
     function pairNormal(nameA, nameB) {
         const [s, t] = nodeIdx[nameA] < nodeIdx[nameB]
             ? [nodes[nodeIdx[nameA]], nodes[nodeIdx[nameB]]]
@@ -220,32 +213,28 @@ function initGraph() {
 
     const OFFSET = 9;
 
-    function drawEdge(from, to, amount, type) {
+    edges.forEach(({ from, to, amount }) => {
         const s = nodes[nodeIdx[from]], t = nodes[nodeIdx[to]];
         const dx = t.x - s.x, dy = t.y - s.y;
         const d = Math.sqrt(dx * dx + dy * dy) || 1;
         const ddx = dx / d, ddy = dy / d;
 
         const { nx, ny } = pairNormal(from, to);
-        const offsetMult = type === 'flow' ? (nodeIdx[from] < nodeIdx[to] ? 1 : -1) : 0;
+        const offsetMult = nodeIdx[from] < nodeIdx[to] ? 1 : -1;
         const ox = nx * OFFSET * offsetMult, oy = ny * OFFSET * offsetMult;
 
         const sb = borderPt(s, ddx, ddy);
         const te = borderPt(t, -ddx, -ddy);
-
         const sx = sb.x + ox, sy = sb.y + oy;
         const tx2 = te.x + ox - ddx * 5, ty2 = te.y + oy - ddy * 5;
         const mx = (sx + tx2) / 2 + ox * 2, my = (sy + ty2) / 2 + oy * 2;
 
-        const color = type === 'flow' ? '#3b82f6' : '#16a34a';
-        const marker = type === 'flow' ? 'arr-blue' : 'arr-green';
-        gZoom.appendChild(mkEl('path', {
+        g.appendChild(mkEl('path', {
             d: `M${sx},${sy} Q${mx},${my} ${tx2},${ty2}`,
-            fill: 'none', stroke: color,
-            'stroke-width': 1,
-            'stroke-dasharray': type === 'flow' ? '4,3' : 'none',
-            'marker-end': `url(#${marker})`,
+            fill: 'none', stroke: color, 'stroke-width': 1,
+            'stroke-dasharray': dash, 'marker-end': `url(#${markerId})`,
         }));
+
         const lx = (sx + 2 * mx + tx2) / 4, ly = (sy + 2 * my + ty2) / 4;
         const lbl = mkEl('text', {
             x: lx + ox, y: ly + oy,
@@ -253,17 +242,20 @@ function initGraph() {
             style: 'font-size: 12px', fill: color,
         });
         lbl.textContent = amount.toFixed(2);
-        gZoom.appendChild(lbl);
-    }
-
-    flows.forEach(e => drawEdge(e.from, e.to, e.amount, 'flow'));
-    settlements.forEach(e => drawEdge(e.from, e.to, e.amount, 'settle'));
+        g.appendChild(lbl);
+        const bb = lbl.getBBox();
+        const pad = 2;
+        g.insertBefore(mkEl('rect', {
+            x: bb.x - pad, y: bb.y - pad,
+            width: bb.width + pad * 2, height: bb.height + pad * 2,
+            fill: 'white', 'fill-opacity': '0.85', rx: 2,
+        }), lbl);
+    });
 
     nodes.forEach(n => {
-        const g = mkEl('g', { transform: `translate(${n.x},${n.y})` });
-        g.appendChild(mkEl('rect', {
-            x: -n.hw, y: -n.hh,
-            width: n.hw * 2, height: n.hh * 2,
+        const ng = mkEl('g', { transform: `translate(${n.x},${n.y})` });
+        ng.appendChild(mkEl('rect', {
+            x: -n.hw, y: -n.hh, width: n.hw * 2, height: n.hh * 2,
             rx: 4, fill: 'white', stroke: '#e5e7eb', 'stroke-width': 1.5,
         }));
         const txt = mkEl('text', {
@@ -271,24 +263,7 @@ function initGraph() {
             'font-size': fontSize, fill: '#111827',
         });
         txt.textContent = n.name;
-        g.appendChild(txt);
-        gZoom.appendChild(g);
+        ng.appendChild(txt);
+        g.appendChild(ng);
     });
-
-    // Legend (fixed, outside gZoom so it doesn't pan/zoom)
-    const legend = mkEl('g', {});
-    const legendItems = [
-        { color: '#3b82f6', dash: '4,3', label: labels.legend_flows },
-        { color: '#16a34a', dash: 'none', label: labels.legend_settlements },
-    ];
-    legendItems.forEach(({ color, dash, label }, i) => {
-        const y = 10 + i * 13;
-        const line = mkEl('line', { x1: 8, y1: y, x2: 24, y2: y, stroke: color, 'stroke-width': 1, 'stroke-dasharray': dash });
-        const lbl = mkEl('text', { x: 28, y: y, 'dominant-baseline': 'middle', style: 'font-size: 12px', fill: '#374151' });
-        lbl.textContent = label;
-        legend.appendChild(line);
-        legend.appendChild(lbl);
-    });
-    svg.appendChild(legend);
-
 }
