@@ -88,9 +88,6 @@
     {% endif %}
     <hr>
     <button type="button" class="secondary" id="history-btn">{{ t.history }}</button>
-</div>
-
-<footer>
     <div id="history-panel" hidden>
         {% if log %}
         <ul class="log-list">
@@ -105,7 +102,7 @@
         <p>{{ t.no_history }}</p>
         {% endif %}
     </div>
-</footer>
+</div>
 
 <script id="group-js"
     data-labels='{"copy_link": "{{ t.copy_link }}", "copied": "{{ t.copied }}", "spending_added": "{{ t.spending_added }}"}'

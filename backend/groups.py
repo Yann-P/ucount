@@ -2,7 +2,7 @@ import secrets
 from pathlib import Path
 
 from fastapi import APIRouter, Form, Query, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 import algorithm
@@ -67,8 +67,11 @@ async def group_page(request: Request, slug: str):
     )
 
 
-@router.get("/api/groups/check")
-async def check_groups(slugs: str = Query(default="")):
+@router.get("/api/groups/partial", response_class=HTMLResponse)
+async def groups_partial(request: Request, slugs: str = Query(default="")):
     slug_list = [s.strip() for s in slugs.split(",") if s.strip()]
-    existing = [s for s in slug_list if store.get(f"group:{s}") is not None]
-    return {"slugs": existing}
+    groups = [g for s in slug_list if (g := store.get(f"group:{s}"))]
+    t = i18n.get_translations(request.headers.get("accept-language", ""))
+    return TEMPLATES.TemplateResponse(
+        request, "my_groups.html", {"groups": groups, "t": t}
+    )

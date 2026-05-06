@@ -1,0 +1,4 @@
+{% for g in groups %}<li>
+    <a href="/group/{{ g.slug }}">{{ g.name }}</a>
+    <button type="button" class="member-remove" data-slug="{{ g.slug }}" data-confirm="{{ t.confirm_remove_group }}">×</button>
+</li>{% endfor %}

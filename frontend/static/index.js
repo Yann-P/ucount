@@ -46,43 +46,20 @@ function syncRemoveButtons() {
 
 async function loadMyGroups() {
     const saved = JSON.parse(localStorage.getItem('my-groups') || '[]');
-    const list = document.getElementById('my-groups-list');
-    list.innerHTML = '';
     if (!saved.length) return;
-
+    const slugs = saved.map(g => g.slug).join(',');
     try {
-        const slugs = saved.map(g => g.slug).join(',');
-        const r = await fetch('/api/groups/check?slugs=' + encodeURIComponent(slugs));
-        const { slugs: existing } = await r.json();
-        const valid = saved.filter(g => existing.includes(g.slug));
-        if (!valid.length) return;
-
-        const confirmMsg = list.dataset.confirmRemove;
-        valid.forEach(({ slug, name }) => {
-            const li = document.createElement('li');
-            li.style.display = 'flex';
-            li.style.alignItems = 'center';
-            li.style.gap = '0.375rem';
-
-            const a = document.createElement('a');
-            a.href = '/group/' + slug;
-            a.textContent = name;
-            a.style.flex = '1';
-
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'member-remove';
-            btn.textContent = '×';
+        const html = await fetch('/api/groups/partial?slugs=' + encodeURIComponent(slugs)).then(r => r.text());
+        const list = document.getElementById('my-groups-list');
+        list.innerHTML = html;
+        if (!list.children.length) return;
+        list.querySelectorAll('button[data-slug]').forEach(btn => {
             btn.addEventListener('click', () => {
-                if (!confirm(confirmMsg)) return;
+                if (!confirm(btn.dataset.confirm)) return;
                 const all = JSON.parse(localStorage.getItem('my-groups') || '[]');
-                localStorage.setItem('my-groups', JSON.stringify(all.filter(g => g.slug !== slug)));
+                localStorage.setItem('my-groups', JSON.stringify(all.filter(g => g.slug !== btn.dataset.slug)));
                 loadMyGroups();
             });
-
-            li.appendChild(a);
-            li.appendChild(btn);
-            list.appendChild(li);
         });
         document.getElementById('my-groups').hidden = false;
     } catch (_) {}

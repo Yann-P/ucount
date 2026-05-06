@@ -21,39 +21,42 @@ def make_group() -> str:
     return r.headers["location"].split("/")[-1]
 
 
-def test_check_existing_group():
+def test_partial_existing_group():
     slug = make_group()
-    r = client.get(f"/api/groups/check?slugs={slug}")
+    r = client.get(f"/api/groups/partial?slugs={slug}")
     assert r.status_code == 200
-    assert r.json()["slugs"] == [slug]
+    assert slug in r.text
+    assert "Trip" in r.text
 
 
-def test_check_nonexistent_group():
-    r = client.get("/api/groups/check?slugs=doesnotexist")
+def test_partial_nonexistent_group():
+    r = client.get("/api/groups/partial?slugs=doesnotexist")
     assert r.status_code == 200
-    assert r.json()["slugs"] == []
+    assert r.text.strip() == ""
 
 
-def test_check_mixed():
+def test_partial_mixed():
     slug = make_group()
-    r = client.get(f"/api/groups/check?slugs={slug},fake123,other")
-    assert r.json()["slugs"] == [slug]
+    r = client.get(f"/api/groups/partial?slugs={slug},fake123,other")
+    assert slug in r.text
+    assert "fake123" not in r.text
 
 
-def test_check_empty_param():
-    r = client.get("/api/groups/check?slugs=")
-    assert r.json()["slugs"] == []
+def test_partial_empty_param():
+    r = client.get("/api/groups/partial?slugs=")
+    assert r.status_code == 200
+    assert r.text.strip() == ""
 
 
-def test_check_no_param():
-    r = client.get("/api/groups/check")
-    assert r.json()["slugs"] == []
+def test_partial_no_param():
+    r = client.get("/api/groups/partial")
+    assert r.status_code == 200
+    assert r.text.strip() == ""
 
 
-def test_check_multiple_existing():
+def test_partial_multiple_existing():
     slug1 = make_group()
     slug2 = make_group()
-    r = client.get(f"/api/groups/check?slugs={slug1},{slug2}")
-    existing = r.json()["slugs"]
-    assert slug1 in existing
-    assert slug2 in existing
+    r = client.get(f"/api/groups/partial?slugs={slug1},{slug2}")
+    assert slug1 in r.text
+    assert slug2 in r.text

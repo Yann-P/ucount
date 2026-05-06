@@ -18,9 +18,12 @@ html {
 body {
   font-family: system-ui, -apple-system, sans-serif;
   color: var(--text);
-  background: var(--bg);
+  background: radial-gradient(ellipse at 60% 0%, #e8faf6 0%, var(--bg) 20%);
   min-block-size: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
+
 
 hr {
   background: var(--border);
@@ -31,10 +34,19 @@ hr {
 }
 
 main {
+  flex: 1;
   max-inline-size: 480px;
   margin-inline: auto;
   padding: var(--space);
   padding-block-end: 3rem;
+}
+
+.site-footer {
+  text-align: center;
+  padding: 0.75rem;
+  background: #f3f4f6;
+  color: var(--muted);
+  font-size: 0.875rem;
 }
 
 h1 {
@@ -278,6 +290,8 @@ footer { margin-block-start: 2rem; padding-block-start: var(--space); border-top
 
 /* === My groups === */
 #my-groups { margin-block-end: 1.5rem; }
+#my-groups-list li { display: flex; align-items: center; gap: 0.375rem; }
+#my-groups-list a { flex: 1; }
 
 /* === Toast === */
 #toast {

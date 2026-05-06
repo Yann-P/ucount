@@ -1,8 +1,9 @@
 # uspend
 
 Shared expense tracker. No accounts, just share the link.
+Your groups are stored in local storage.
 
-Split bills with friends without signing up. Create a group, share the URL, and everyone can add expenses. The app computes the minimal set of transfers to settle all debts.
+### [Live demo](https://count.ynn.ovh)
 
 ## Features
 
