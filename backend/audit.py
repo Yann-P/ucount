@@ -21,12 +21,15 @@ def parse_browser(ua: str) -> str:
 
 
 def get_ip(request: Request) -> str:
+    import ipaddress
+
     fwd = request.headers.get("x-forwarded-for")
-    return (
-        fwd.split(",")[0].strip()
-        if fwd
-        else (request.client.host if request.client else "unknown")
-    )
+    candidate = fwd.split(",")[0].strip() if fwd else ""
+    try:
+        ipaddress.ip_address(candidate)
+        return candidate
+    except ValueError:
+        return request.client.host if request.client else "unknown"
 
 
 def log(slug: str, ip: str, browser: str, action: str) -> None:
