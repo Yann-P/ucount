@@ -1,21 +1,15 @@
 import secrets
-from pathlib import Path
 
 from fastapi import APIRouter, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 
 import algorithm
 import audit
 import translations as i18n
 import store
+from tmpl import TEMPLATES
 
 router = APIRouter()
-_STATIC = Path(__file__).parent.parent / "frontend" / "static"
-TEMPLATES = Jinja2Templates(
-    directory=Path(__file__).parent.parent / "frontend" / "templates"
-)
-TEMPLATES.env.globals["static_v"] = lambda name: int((_STATIC / name).stat().st_mtime)
 MAX_MEMBERS = 40
 
 
