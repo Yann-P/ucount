@@ -177,6 +177,11 @@ input:not([type=checkbox]):focus, select:focus, textarea:focus {
 }
 input::placeholder, textarea::placeholder { color: var(--muted); }
 
+input:not([type=checkbox]):user-invalid, select:user-invalid, textarea:user-invalid {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #dc2626 25%, transparent);
+}
+
 input[type=number] { appearance: none; -moz-appearance: textfield; }
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
