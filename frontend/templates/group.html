@@ -67,15 +67,16 @@
 </div>
 
 <div role="tabpanel" id="panel-members" aria-labelledby="tab-members" tabindex="0">
-    <ul>
+    <div class="member-table">
         {% for m in stats.members %}
-        <li class="member-stat-item">
-            <span>{{ m.name }}</span>
-            <span>{{ "%.2f" % m.paid }} {{ group.currency }}</span>
-            <span class="{{ 'positive' if m.balance > 0 else 'negative' if m.balance < 0 else '' }}">{{ "%+.2f" % m.balance }}</span>
-        </li>
+        <span>{{ m.name }}</span>
+        <span>{{ "%.2f" % m.paid }} {{ group.currency }}</span>
+        <span class="{{ 'positive' if m.balance > 0 else 'negative' if m.balance < 0 else '' }}">{{ "%+.2f" % m.balance }}</span>
         {% endfor %}
-    </ul>
+        <span class="member-table-total">{{ t.total }}</span>
+        <span class="member-table-total">{{ "%.2f" % stats.total }} {{ group.currency }}</span>
+        <span class="member-table-total">0</span>
+    </div>
     <hr>
     {% if settlements %}
     <ul id="settlements">

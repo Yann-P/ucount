@@ -272,8 +272,11 @@ li:last-child { border-block-end: none; }
 .member-remove:hover:not(:disabled) { border-color: #EF4444; color: #EF4444; }
 #members-fieldset #add-member-btn { inline-size: 100%; margin-block-start: var(--space); }
 
-/* === Grids === */
-li.member-stat-item { display: grid; grid-template-columns: 1fr auto auto; align-items: center; column-gap: var(--space); }
+/* === Member table === */
+.member-table { display: grid; grid-template-columns: 1fr auto auto; align-items: center; column-gap: var(--space); row-gap: 0; }
+.member-table > span { padding-block: 0.5rem; border-block-end: 1px solid var(--border); }
+.member-table > span:nth-last-child(-n+3) { border-block-end: none; }
+.member-table-total { border-top: 2px solid var(--border) !important; }
 .positive { color: #16a34a; font-weight: 500; }
 .negative { color: #dc2626; font-weight: 500; }
 

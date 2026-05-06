@@ -293,3 +293,16 @@ def test_flows_bidirectional():
 def test_flows_empty():
     g = group(["A", "B"], [])
     assert compute_flows(g) == []
+
+
+def test_settle_deterministic_with_equal_amounts():
+    # Two debtors owe the same amount to one creditor.
+    # Result must be identical regardless of dict insertion order.
+    balances_ab = {"Charlie": 20.0, "Alice": -10.0, "Bob": -10.0}
+    balances_ba = {"Bob": -10.0, "Alice": -10.0, "Charlie": 20.0}
+    txns_ab = settle(balances_ab)
+    txns_ba = settle(balances_ba)
+    assert txns_ab == txns_ba
+    # Tie broken by reverse-alpha: Bob (higher) before Alice.
+    assert txns_ab[0]["payer"] == "Bob"
+    assert txns_ab[1]["payer"] == "Alice"
