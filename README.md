@@ -3,7 +3,7 @@
 Shared expense tracker. No accounts, just share the link.
 Your groups are stored in local storage.
 
-### [Live demo](https://count.ynn.ovh)
+### [Live demo](https://count.yann.md)
 
 ## Features
 
