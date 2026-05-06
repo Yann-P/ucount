@@ -13,6 +13,8 @@
   "no_spendings": "Aucune dépense.",
   "owes": "doit à",
   "all_settled": "Tout est réglé !",
+  "legend_flows": "Dépenses",
+  "legend_settlements": "Remboursements nécessaires",
   "copy_link": "Copier le lien",
   "copied": "Copié !",
   "new_spending": "Créer dépense",

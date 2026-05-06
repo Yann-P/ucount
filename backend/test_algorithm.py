@@ -1,4 +1,4 @@
-from algorithm import compute_balances, compute_stats, settle
+from algorithm import compute_balances, compute_flows, compute_stats, settle
 
 
 def group(members, spendings=None):
@@ -262,3 +262,34 @@ def test_settle_pipeline_clears_complex_group():
     txns = settle(balances)
     result = apply_txns(balances, txns)
     assert all(abs(v) < 0.01 for v in result.values())
+
+
+def test_flows_basic():
+    g = group(["A", "B", "C"], [spending("A", 30, ["A", "B", "C"])])
+    flows = compute_flows(g)
+    assert len(flows) == 2
+    assert all(f["from"] == "A" for f in flows)
+    assert {f["to"] for f in flows} == {"B", "C"}
+    assert all(abs(f["amount"] - 10) < 0.01 for f in flows)
+
+
+def test_flows_bidirectional():
+    # Both A→B and B→A should appear separately, not netted
+    g = group(
+        ["A", "B"],
+        [
+            spending("A", 30, ["A", "B"]),
+            spending("B", 10, ["A", "B"]),
+        ],
+    )
+    flows = compute_flows(g)
+    assert len(flows) == 2
+    ab = next(f for f in flows if f["from"] == "A" and f["to"] == "B")
+    ba = next(f for f in flows if f["from"] == "B" and f["to"] == "A")
+    assert abs(ab["amount"] - 15) < 0.01
+    assert abs(ba["amount"] - 5) < 0.01
+
+
+def test_flows_empty():
+    g = group(["A", "B"], [])
+    assert compute_flows(g) == []

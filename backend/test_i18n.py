@@ -73,6 +73,8 @@ def test_all_keys_present():
         "confirm_remove_group",
         "date",
         "reasons",
+        "legend_flows",
+        "legend_settlements",
     }
     assert expected == set(t.keys())
 

@@ -11,9 +11,11 @@ import translations as i18n
 import store
 
 router = APIRouter()
+_STATIC = Path(__file__).parent.parent / "frontend" / "static"
 TEMPLATES = Jinja2Templates(
     directory=Path(__file__).parent.parent / "frontend" / "templates"
 )
+TEMPLATES.env.globals["static_v"] = lambda name: int((_STATIC / name).stat().st_mtime)
 MAX_MEMBERS = 40
 
 
@@ -53,7 +55,16 @@ async def group_page(request: Request, slug: str):
         return RedirectResponse("/", status_code=303)
     t = i18n.get_translations(request.headers.get("accept-language", ""))
     stats = algorithm.compute_stats(group)
-    settlements = algorithm.settle({m["name"]: m["balance"] for m in stats["members"]})
+    balances = {m["name"]: m["balance"] for m in stats["members"]}
+    settlements = algorithm.settle(balances)
+    graph = {
+        "members": group["members"],
+        "flows": algorithm.compute_flows(group),
+        "settlements": [
+            {"from": s["payer"], "to": s["payee"], "amount": s["amount"]}
+            for s in settlements
+        ],
+    }
     return TEMPLATES.TemplateResponse(
         request,
         "group.html",
@@ -62,6 +73,7 @@ async def group_page(request: Request, slug: str):
             "t": t,
             "settlements": settlements,
             "stats": stats,
+            "graph": graph,
             "log": audit.get_log(slug),
         },
     )

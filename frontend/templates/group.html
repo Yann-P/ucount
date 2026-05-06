@@ -78,7 +78,7 @@
     </ul>
     <hr>
     {% if settlements %}
-    <ul>
+    <ul id="settlements">
         {% for s in settlements %}
         <li><strong>{{ s.payer }}</strong> {{ t.owes }} <strong>{{ s.payee }}</strong> {{ "%.2f" % s.amount }} {{ group.currency }}</li>
         {% endfor %}
@@ -86,6 +86,8 @@
     {% else %}
     <p>{{ t.all_settled }}</p>
     {% endif %}
+    <hr>
+    <svg id="graph-svg" class="graph-svg"></svg>
     <hr>
     <button type="button" class="secondary" id="history-btn">{{ t.history }}</button>
     <div id="history-panel" hidden>
@@ -104,10 +106,12 @@
     </div>
 </div>
 
+
 <script id="group-js"
-    data-labels='{"copy_link": "{{ t.copy_link }}", "copied": "{{ t.copied }}", "spending_added": "{{ t.spending_added }}"}'
+    data-labels='{"copy_link": "{{ t.copy_link }}", "copied": "{{ t.copied }}", "spending_added": "{{ t.spending_added }}", "legend_flows": "{{ t.legend_flows }}", "legend_settlements": "{{ t.legend_settlements }}"}'
     data-reasons='{{ t.reasons | tojson }}'
+    data-graph='{{ graph | tojson }}'
     data-slug="{{ group.slug }}"
     data-name="{{ group.name | e }}"
-    src="/static/group.js"></script>
+    src="/static/group.js?v={{ static_v('group.js') }}"></script>
 {% endblock %}

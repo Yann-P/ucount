@@ -28,6 +28,25 @@ def compute_balances(group: dict) -> dict[str, float]:
     return {m: round(b, 2) for m, b in balances.items()}
 
 
+def compute_flows(group: dict) -> list[dict]:
+    """Spending flows: total amount each payer covered for each beneficiary across all spendings."""
+    paid_for: dict[tuple[str, str], float] = {}
+    for s in group["spendings"]:
+        n = len(s["beneficiaries"])
+        if n == 0:
+            continue
+        share = s["amount"] / n
+        for b in s["beneficiaries"]:
+            if b != s["paid_by"]:
+                key = (s["paid_by"], b)
+                paid_for[key] = paid_for.get(key, 0) + share
+    return [
+        {"from": payer, "to": beneficiary, "amount": round(amount, 2)}
+        for (payer, beneficiary), amount in paid_for.items()
+        if amount > 0.005
+    ]
+
+
 def settle(balances: dict[str, float]) -> list[dict]:
     """Minimal transactions to clear all debts. Greedy: largest creditor meets largest debtor."""
     EPSILON = 0.005

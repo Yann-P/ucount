@@ -13,6 +13,8 @@
   "no_spendings": "No spendings yet.",
   "owes": "owes",
   "all_settled": "All settled!",
+  "legend_flows": "Spending flows",
+  "legend_settlements": "Required settlements",
   "copy_link": "Copy link",
   "copied": "Copied!",
   "new_spending": "Add",
